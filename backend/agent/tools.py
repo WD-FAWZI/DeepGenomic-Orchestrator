@@ -202,3 +202,57 @@ async def score_with_hyenadna(target_seq: str) -> float | None:
     except Exception:
         # Preserve graceful behavior while setup/model availability evolves.
         return None
+
+
+_fasta_extractor: Any = None
+
+
+def extract_flanking_context(
+    chromosome: str,
+    position: int,
+    strand: str,
+    genome_fasta_path: str | None = None,
+) -> str | None:
+    """
+    Extract a 2023bp genomic context window ([position - 1000, position + 23 + 1000])
+    from the reference genome, and reverse-complement it if strand is "-".
+
+    Args:
+        chromosome: Chromosome name (e.g. chr1).
+        position: 0-indexed start position of the 23bp site.
+        strand: "+" or "-" indicating sequence orientation.
+        genome_fasta_path: Optional override for reference genome path.
+
+    Returns:
+        The 2023bp sequence string, or None if extraction fails.
+    """
+    global _fasta_extractor
+
+    genome_raw = genome_fasta_path or os.getenv("CAS_OFFINDER_GENOME_PATH")
+    if not genome_raw:
+        return None
+
+    try:
+        from bio_core.fasta_extractor import FastaExtractor, reverse_complement
+
+        resolved = resolve_env_path(genome_raw)
+        if _fasta_extractor is None or _fasta_extractor.genome_path != resolved:
+            _fasta_extractor = FastaExtractor(resolved)
+
+        start_pos = position - 1000
+        length = 2023
+
+        extracted = _fasta_extractor.extract_sequence(chromosome, start_pos, length)
+
+        if strand == "-":
+            extracted = reverse_complement(extracted)
+
+        return extracted
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).error(
+            "Failed to extract flanking context for %s:%d (strand %s): %s",
+            chromosome, position, strand, exc
+        )
+        return None
+

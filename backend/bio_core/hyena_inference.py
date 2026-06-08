@@ -150,7 +150,17 @@ class HyenaZeroShotEvaluator:
         try:
             with self._inference_lock:
                 # Tokenize input
-                inputs = self.tokenizer(clean_seq, return_tensors="pt")
+                max_len = getattr(
+                    self.model.config,
+                    "max_position_embeddings",
+                    getattr(self.model.config, "max_seq_len", 1024)
+                )
+                inputs = self.tokenizer(
+                    clean_seq,
+                    return_tensors="pt",
+                    truncation=True,
+                    max_length=max_len,
+                )
                 input_ids = inputs["input_ids"].to(self.device)
 
                 with torch.inference_mode():

@@ -108,14 +108,50 @@ def cas_offinder_node(state: GraphState) -> GraphState:
 
 
 async def hyenadna_node(state: GraphState) -> GraphState:
-    """Score the full target sequence with the HyenaDNA model."""
+    """Score the target sequence with the HyenaDNA model, injecting flanking context if short."""
     target = state.get("input_sequence", "")
-    result = await score_with_hyenadna(target)
+    metadata = dict(state.get("metadata", {}))
+
+    extracted_seq = None
+    if len(target) < 100:
+        cas_result = state.get("cas_offinder_result")
+        on_target = None
+        if cas_result and isinstance(cas_result, dict):
+            off_targets = cas_result.get("off_targets", [])
+            for ot in off_targets:
+                if ot.get("mismatches") == 0:
+                    on_target = ot
+                    break
+
+        if on_target:
+            chrom = on_target.get("chromosome")
+            pos = on_target.get("position")
+            strand = on_target.get("strand", "+")
+            if chrom is not None and pos is not None:
+                from agent.tools import extract_flanking_context
+                genome_path = cas_result.get("genome_path")
+                extracted_seq = extract_flanking_context(
+                    chromosome=chrom,
+                    position=pos,
+                    strand=strand,
+                    genome_fasta_path=genome_path,
+                )
+                if extracted_seq:
+                    metadata["extracted_context"] = {
+                        "chromosome": chrom,
+                        "position": pos,
+                        "strand": strand,
+                        "length": len(extracted_seq),
+                    }
+
+    eval_sequence = extracted_seq if extracted_seq else target
+    result = await score_with_hyenadna(eval_sequence)
 
     return {
         **state,
         "current_step": "hyenadna_complete",
         "hyenadna_score": result,
+        "metadata": metadata,
     }
 
 
