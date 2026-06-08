@@ -107,10 +107,10 @@ def cas_offinder_node(state: GraphState) -> GraphState:
     }
 
 
-def hyenadna_node(state: GraphState) -> GraphState:
+async def hyenadna_node(state: GraphState) -> GraphState:
     """Score the full target sequence with the HyenaDNA model."""
     target = state.get("input_sequence", "")
-    result = score_with_hyenadna(target)
+    result = await score_with_hyenadna(target)
 
     return {
         **state,
@@ -301,7 +301,7 @@ def _get_graph():
     return _compiled_graph
 
 
-def run_evaluation(
+async def run_evaluation(
     dna_sequence: str,
     guide_sequence: str | None = None,
 ) -> AgentState:
@@ -327,6 +327,6 @@ def run_evaluation(
     }
 
     graph = _get_graph()
-    result: GraphState = graph.invoke(initial)
+    result: GraphState = await graph.ainvoke(initial)
     return AgentState.from_graph_dict(dict(result))
 

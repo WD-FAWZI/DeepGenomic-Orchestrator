@@ -8,6 +8,7 @@ underlying compute backends in bio_core/.
 from __future__ import annotations
 
 import os
+import asyncio
 from typing import Any
 
 from config.environment import load_environment, resolve_env_path
@@ -180,7 +181,7 @@ def _get_hyenadna_inference() -> HyenaZeroShotEvaluator:
     return _hyena_evaluator
 
 
-def score_with_hyenadna(target_seq: str) -> float | None:
+async def score_with_hyenadna(target_seq: str) -> float | None:
     """
     Run real HyenaDNA efficiency inference and return a numeric score.
 
@@ -196,7 +197,7 @@ def score_with_hyenadna(target_seq: str) -> float | None:
 
     try:
         evaluator = _get_hyenadna_inference()
-        score = evaluator.predict_efficiency(normalized)
+        score = await asyncio.to_thread(evaluator.predict_efficiency, normalized)
         return score
     except Exception:
         # Preserve graceful behavior while setup/model availability evolves.

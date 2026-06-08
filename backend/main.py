@@ -112,7 +112,7 @@ async def evaluate_sequence(request: EvaluateRequest) -> EvaluateResponse:
         )
 
     try:
-        result = run_evaluation(
+        result = await run_evaluation(
             dna_sequence=sequence,
             guide_sequence=request.guide_sequence,
         )

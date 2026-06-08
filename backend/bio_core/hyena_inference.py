@@ -67,9 +67,10 @@ class HyenaZeroShotEvaluator:
             else:
                 self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.model: Any | None = None
-        self.tokenizer: Any | None = None
+        self.model = None
+        self.tokenizer = None
         self._load_lock = threading.Lock()
+        self._inference_lock = threading.Lock()
         self._initialized = True
         logger.info(
             "HyenaZeroShotEvaluator initialized (deferred loading). Target device: %s, Model path: %s",
@@ -147,36 +148,37 @@ class HyenaZeroShotEvaluator:
             raise HyenaDNAInferenceError("DNA sequence cannot be empty.")
 
         try:
-            # Tokenize input
-            inputs = self.tokenizer(clean_seq, return_tensors="pt")
-            input_ids = inputs["input_ids"].to(self.device)
+            with self._inference_lock:
+                # Tokenize input
+                inputs = self.tokenizer(clean_seq, return_tensors="pt")
+                input_ids = inputs["input_ids"].to(self.device)
 
-            with torch.inference_mode():
-                outputs = self.model(input_ids)
-                
-                # Retrieve logits
-                if hasattr(outputs, "logits"):
-                    logits = outputs.logits
-                elif isinstance(outputs, tuple):
-                    logits = outputs[0]
-                else:
-                    # Fallback if the return type is a generic ModelOutput without logits attribute
-                    logits = getattr(outputs, "last_hidden_state", outputs)
-                    if hasattr(logits, "mean"):
-                        logits = logits.mean(dim=1)  # average pooling
+                with torch.inference_mode():
+                    outputs = self.model(input_ids)
+                    
+                    # Retrieve logits
+                    if hasattr(outputs, "logits"):
+                        logits = outputs.logits
+                    elif isinstance(outputs, tuple):
+                        logits = outputs[0]
+                    else:
+                        # Fallback if the return type is a generic ModelOutput without logits attribute
+                        logits = getattr(outputs, "last_hidden_state", outputs)
+                        if hasattr(logits, "mean"):
+                            logits = logits.mean(dim=1)  # average pooling
 
-                # Map logits to [0, 1] efficiency score
-                # Case 1: Multi-class logits (e.g. active vs inactive) -> Softmax
-                if logits.shape[-1] > 1:
-                    probs = torch.softmax(logits, dim=-1)
-                    # Use class 1 (usually representing active/efficient guide)
-                    score = probs[0, 1].item()
-                # Case 2: Single-logit regression/binary classification -> Sigmoid
-                else:
-                    score = torch.sigmoid(logits[0, 0]).item()
+                    # Map logits to [0, 1] efficiency score
+                    # Case 1: Multi-class logits (e.g. active vs inactive) -> Softmax
+                    if logits.shape[-1] > 1:
+                        probs = torch.softmax(logits, dim=-1)
+                        # Use class 1 (usually representing active/efficient guide)
+                        score = probs[0, 1].item()
+                    # Case 2: Single-logit regression/binary classification -> Sigmoid
+                    else:
+                        score = torch.sigmoid(logits[0, 0]).item()
 
-                # Ensure score is strictly clamped to [0.0, 1.0]
-                return float(max(0.0, min(1.0, score)))
+                    # Ensure score is strictly clamped to [0.0, 1.0]
+                    return float(max(0.0, min(1.0, score)))
 
         except Exception as exc:
             logger.error("Error during HyenaDNA inference for sequence %s: %s", sequence, exc)
