@@ -17,11 +17,26 @@ from bio_core.cas_wrapper import (
     CasOffinderRunner,
 )
 from bio_core.hyena_inference import HyenaZeroShotEvaluator, HyenaDNAInferenceError
+from bio_core.filters import evaluate_guide
 
 # Ensure .env is loaded when tools are invoked outside the FastAPI process.
 load_environment()
 
 _hyena_evaluator: HyenaZeroShotEvaluator | None = None
+
+
+def run_biological_filters(guide_seq: str) -> dict[str, Any]:
+    """
+    Evaluate the biological viability of the guide sequence using biophysical rules.
+
+    Args:
+        guide_seq: The 20bp guide sequence to evaluate.
+
+    Returns:
+        Dictionary containing the GuideFilterReport attributes.
+    """
+    report = evaluate_guide(guide_seq)
+    return report.to_dict()
 
 
 def run_cas_offinder(

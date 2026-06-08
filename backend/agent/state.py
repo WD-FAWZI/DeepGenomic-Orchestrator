@@ -36,6 +36,10 @@ class AgentState(BaseModel):
         default=None,
         description="HyenaDNA efficiency score in [0, 1].",
     )
+    biological_filter_result: dict[str, Any] | None = Field(
+        default=None,
+        description="Biophysical filter results (viability, GC content, shannon entropy, homopolymers, poly-T runs, self-complementarity).",
+    )
     final_evaluation: str | None = Field(
         default=None,
         description="Aggregated evaluation produced at the end of the graph.",
@@ -76,5 +80,7 @@ class EvaluateResponse(BaseModel):
     current_step: str
     cas_offinder_result: dict[str, Any] | None
     hyenadna_score: float | None
+    biological_filter_result: dict[str, Any] | None
     final_evaluation: str
     metadata: dict[str, Any] = Field(default_factory=dict)
+

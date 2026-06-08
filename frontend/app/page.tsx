@@ -148,7 +148,47 @@ export default function HomePage() {
               </pre>
             </ResultCard>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-3">
+              <ResultCard title="Biophysical Filters" accent="cyan">
+                {result.biological_filter_result ? (
+                  <div className="space-y-3 text-sm text-slate-400">
+                    <div className="flex items-center justify-between">
+                      <span>Viability:</span>
+                      {result.biological_filter_result.viable ? (
+                        <span className="rounded bg-cyber-green/20 px-2 py-0.5 font-mono text-xs font-bold text-cyber-green shadow-[0_0_8px_rgba(57,255,20,0.2)]">
+                          PASSED
+                        </span>
+                      ) : (
+                        <span className="rounded bg-red-500/20 px-2 py-0.5 font-mono text-xs font-bold text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.2)]">
+                          REJECTED
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Safety Score:</span>
+                      <span className="font-mono font-bold text-cyber-cyan">
+                        {result.biological_filter_result.score.toFixed(2)} / 1.00
+                      </span>
+                    </div>
+                    <div className="border-t border-cyber-border/40 pt-2 text-xs">
+                      <span className="block text-cyber-muted uppercase tracking-wider mb-1">Notes:</span>
+                      <p className="italic text-slate-300">
+                        {result.biological_filter_result.reasons}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 border-t border-cyber-border/40 pt-2 text-xs font-mono">
+                      <div>GC: {(result.biological_filter_result.gc_content * 100).toFixed(1)}%</div>
+                      <div>Entropy: {result.biological_filter_result.shannon_entropy.toFixed(2)}</div>
+                      <div>Homo Run: {result.biological_filter_result.has_homopolymer ? "Yes" : "No"}</div>
+                      <div>Poly-T: {result.biological_filter_result.has_polyT_u6 ? "Yes" : "No"}</div>
+                      <div className="col-span-2">Self-Comp: {result.biological_filter_result.self_comp_max} bp</div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-400">No results</p>
+                )}
+              </ResultCard>
+
               <ResultCard title="Cas-OFFinder" accent="magenta">
                 {result.cas_offinder_result ? (
                   <div className="space-y-2 text-sm text-slate-400">
@@ -163,16 +203,34 @@ export default function HomePage() {
                         {result.cas_offinder_result.mismatch_threshold})
                       </p>
                     )}
-                    <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded bg-cyber-bg/60 p-3 text-xs text-cyber-green">
+                    <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded bg-cyber-bg/60 p-3 text-xs text-cyber-green font-mono">
                       {JSON.stringify(result.cas_offinder_result, null, 2)}
                     </pre>
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-400">No results</p>
+                  <p className="text-sm text-slate-500 italic">Bypassed (rejected by biophysical filters)</p>
                 )}
               </ResultCard>
+
               <ResultCard title="HyenaDNA Score" accent="green">
-                <p className="text-sm text-slate-400">{result.hyenadna_score}</p>
+                {result.hyenadna_score !== null ? (
+                  <div className="space-y-2 text-sm text-slate-400">
+                    <div className="flex items-center justify-between">
+                      <span>Cleavage Score:</span>
+                      <span className="font-mono font-bold text-cyber-green">
+                        {result.hyenadna_score.toFixed(6)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Efficiency:</span>
+                      <span className="font-mono text-cyber-green">
+                        {(result.hyenadna_score * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500 italic">Bypassed (rejected by biophysical filters)</p>
+                )}
               </ResultCard>
             </div>
 

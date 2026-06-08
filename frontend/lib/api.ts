@@ -36,11 +36,24 @@ export interface CasOffinderResult {
   error?: string;
 }
 
+export interface BiologicalFilterResult {
+  guide_seq: string;
+  gc_content: number;
+  shannon_entropy: number;
+  has_homopolymer: boolean;
+  has_polyT_u6: boolean;
+  self_comp_max: number;
+  viable: boolean;
+  reasons: string;
+  score: number;
+}
+
 export interface EvaluateResponse {
   input_sequence: string;
   current_step: string;
   cas_offinder_result: CasOffinderResult | null;
   hyenadna_score: number | null;
+  biological_filter_result: BiologicalFilterResult | null;
   final_evaluation: string;
   metadata: Record<string, unknown>;
 }

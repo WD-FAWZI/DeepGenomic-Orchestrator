@@ -127,6 +127,7 @@ async def evaluate_sequence(request: EvaluateRequest) -> EvaluateResponse:
         current_step=result.current_step,
         cas_offinder_result=result.cas_offinder_result,
         hyenadna_score=result.hyenadna_score,
+        biological_filter_result=result.biological_filter_result,
         final_evaluation=result.final_evaluation or "Evaluation produced no output.",
         metadata=result.metadata,
     )
