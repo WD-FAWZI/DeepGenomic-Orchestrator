@@ -1,0 +1,31 @@
+# Python
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.egg-info/
+backend/.pytest_cache/
+
+# Node
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# Cas-OFFinder runtime assets (directories tracked via .gitkeep)
+backend/bin/*.exe
+backend/genome/*.fa
+backend/genome/*.fasta
+
+# Environment
+.env
+.env.local
+backend/.env
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+# AI Models & Large Weights (Do not track!)
+models/
+backend/models/

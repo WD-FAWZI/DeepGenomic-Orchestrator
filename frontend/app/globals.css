@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cyber-bg: #0a0e17;
+  --cyber-cyan: #00f5ff;
+  --cyber-magenta: #ff00aa;
+}
+
+body {
+  background-color: var(--cyber-bg);
+  color: #e2e8f0;
+}
+
+/* Subtle scanline overlay for cyberpunk atmosphere */
+.scanlines::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+}
+
+/* Neon text glow utility */
+.text-glow-cyan {
+  text-shadow: 0 0 10px rgba(0, 245, 255, 0.6), 0 0 30px rgba(0, 245, 255, 0.2);
+}
+
+.text-glow-magenta {
+  text-shadow: 0 0 10px rgba(255, 0, 170, 0.6), 0 0 30px rgba(255, 0, 170, 0.2);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #111827;
+}
+::-webkit-scrollbar-thumb {
+  background: #00f5ff44;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00f5ff88;
+}
